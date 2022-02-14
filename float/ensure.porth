@@ -1,0 +1,58 @@
+//make sure that everything works
+include "fcore.porth"
+include "arith.porth"
+include "comp.porth"
+include "sign.porth"
+include "trig.porth"
+
+proc main in 
+  //test arithmatic
+  1 tofloat 2 tofloat fAdd toint 3 = 
+  1 tofloat 1 tofloat fSub toint 0 = land
+  1 tofloat 0 1 - tofloat fAdd toint 0 = land
+  
+  if
+    "PASSED: " puts
+  else
+    "FAILED: " puts
+  end
+  "Addition/Subtraction test \n" puts
+  
+  //Test mul
+  1 tofloat 5 tofloat fMul toint 5 = 
+  46 tofloat 5 tofloat fMul toint 230 = land
+  67 tofloat 0 tofloat fMul toint 0 = land
+  0 tofloat dup fMul toint 0 = land
+  0 1 - tofloat 32 tofloat fMul toint 0 32 - = land
+  0 1 - tofloat 0 32 - tofloat fMul toint 32 = land
+ 
+  if
+    "PASSED: " puts
+  else
+    "FAILED: " puts
+  end
+  "Multiplication Test\n" puts
+
+  //Test div
+
+  //Test comparisons
+  1 tofloat 5 tofloat f< 
+  1 tofloat 5 tofloat f<= land
+  5 tofloat 1 tofloat f< lnot land
+  67 tofloat 54 tofloat f<= lnot land
+  20 tofloat 9 tofloat f> land
+  20 tofloat 9 tofloat f>= land
+  7 tofloat 34 tofloat f> lnot land
+  7 tofloat 34 tofloat f>= lnot land
+  4 tofloat dup f>= land
+  4 tofloat dup f<= land
+  4 tofloat dup f= land
+  6 tofloat 5 tofloat f!= land
+  
+  if
+    "PASSED: " puts
+  else
+    "FAILED: " puts
+  end
+  "Comparison Test\n" puts
+end

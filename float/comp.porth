@@ -1,0 +1,43 @@
+include "core.porth"
+include "fcore.porth"
+include "sign.porth"
+//Comparison library for float
+
+proc f< int int -- bool in
+  fNeg swap fNeg swap 
+  over over
+  fIsPos swap fIsPos land if //check if both negative
+    //if both negative, we actually want f1 to be greaater (because a greater negative is smaller)
+    >
+  else
+    <
+  end
+end
+
+proc f> int int -- bool in
+  //same as f<
+  fNeg swap fNeg swap
+  over over
+  fIsPos swap fIsPos land if
+    <
+  else
+    >
+  end
+end
+
+proc f>= int int -- bool in
+  f< lnot
+end
+
+proc f<= int int -- bool in
+  f> lnot
+end
+
+proc f= int int -- bool in
+  =
+end
+
+proc f!= int int -- bool in
+  !=
+end
+

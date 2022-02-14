@@ -1,0 +1,55 @@
+include "fcore.porth"
+include "arith.porth"
+include "sign.porth"
+
+proc fPowI int int -- int in
+  dup 0 < if
+    not 1 +
+    1 rot fDiv
+    swap
+  end
+  
+  dup 0 = if
+    drop drop 1
+  else
+    while dup 1 > do
+      1 - 
+      swap
+      dup fMul
+      swap
+    end
+    drop
+  end
+end
+
+//from https://en.wikipedia.org/wiki/Exponentiation_by_squaring
+//This is fater when n > ~4
+proc fPowIEBS int int -- int in //x, n
+  dup 0 < if
+    not 1 +
+    1 rot fDiv
+    swap
+  end
+  
+  dup 0 = if
+    drop drop 1
+  else
+    1065353216 swap //1 as float
+    while dup 1 > do //x y n
+      let x y n in
+        n 1 and cast(bool) if //is odd
+          x x fMul
+          y x fMul
+          n 1 - 
+          1 shr // n / 2
+        else
+          x x fMul
+          y
+          n 1 shr
+        end
+      end
+    end
+    drop
+    fMul
+  end
+end

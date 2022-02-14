@@ -1,0 +1,12 @@
+include "fcore.porth"
+include "comp.porth"
+include "core.porth"
+include "exp.porth"
+include "trig.porth"
+
+proc main in
+   1 tofloat 2 tofloat 
+   over over 
+   fDiv print
+   fDivRecip print
+end

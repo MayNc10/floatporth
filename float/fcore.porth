@@ -1,0 +1,98 @@
+include "std.porth" //TODO when we update, change to core.porth
+const NaN 2139095041 end
+const qNaN 2139095041 end
+const sNaN 4290772993 end
+const inf 2139095040 end
+const -inf 4286578688 end
+
+const mantMask 8388607 end
+const signMask 2147483647 end
+
+const overflowMask 4294967295 end
+
+proc getSign int -- int int in
+  dup 31 shr
+end
+proc setSign int int -- int in //float and sign
+  swap signMask and swap 31 shl or
+end
+
+proc getExp int -- int int in
+  dup signMask and 23 shr 127 -
+end
+proc setExp int int -- int in
+  127 + swap //e f
+  getSign swap rot swap // s e f
+  dup mantMask and swap //s e m f
+  32 shr 7 shl //s e m f
+  rot  //s m f e
+  + //s m f
+  23 shl //s m f
+  + + //f
+end
+
+proc getMant int -- int int in
+  dup mantMask and
+end
+proc setMant int int -- int in
+  swap 22 shr 22 shl or
+end
+
+proc tofloat int -- int in //doesnt handle negative ints
+     dup 0 != if //if zero, just leave zero on stack
+       false swap
+       dup 0 < if
+         not 1 + //TODO: when we update, this should be neg
+         swap drop true swap //reset bool
+       end
+       0 0 //exp and mantissa
+       rot
+       //stack looks like exp mant n
+       while dup 1 > do
+         dup 1 and //bit = n & 1
+         swap
+         1 shr //n >> 1
+         rot // bit n mant
+         1 shr //mant >> 1
+         rot //n mant bit
+         22 shl //exp n mant bit
+         + //exp n mant
+         rot //n mant exp
+         1 + //n mant exp
+         swap rot //exp mant n
+       end
+       //maybe round
+       drop //exp mant
+       mantMask and //mant bitmask// 
+       swap //mant exp
+       127 +
+       23 shl
+       + //final float w/o sign
+       swap 0 swap if //negative
+         drop 1
+       end
+       31 shl + //final float
+     end
+end
+
+proc toint int -- int in
+  dup 0 != if //same as tofloat
+   getSign swap getExp   //s f e
+   1 22 //keep track of number and count
+   rot //s f n c e
+   while dup 0 > do
+    let f n c e in
+     0 c 0 > if drop f c shr 1 and end //get the last bit of f
+     f swap //f b
+     n 1 shl //f b n
+     + //f n
+     c 1 -
+     e 1 -
+    end
+   end
+   drop drop swap drop //s n
+   swap 0 > if not 1 + end //TODO: again, neg
+  end
+end
+  
+

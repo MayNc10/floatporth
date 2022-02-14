@@ -1,0 +1,369 @@
+include "fcore.porth"
+include "sign.porth"
+include "comp.porth"
+include "std.porth"
+//TODO: Figure out rounding!
+//TODO  when should we use -0 or should we just always return +0
+
+proc fAdd int int -- int in
+  let f1 f2 in
+    f1 getSign swap drop
+    f2 getSign swap drop
+    + 1 != if
+      f1 getExp swap drop
+      f2 getExp swap drop
+      over over = if //e1 e2
+        //we just have to add the mants
+        drop 127 + 23 shl //set exp\
+        f1 getMant swap drop //e1 m1 added implicit 1
+        f2 getMant swap drop +
+        16777216 + //add both implict ones
+        f1 getSign swap drop //saame signs 
+        rot rot //normalize mant s e1 m
+        while dup 16777215 > do
+          "while loop" puts
+          1 shr
+          swap 1 + 
+          swap
+        end
+        //bitmask mantissa
+        //mantMask and //WEIRD BUG HERE: For some reason the lower bit of exp never gets set, so by not bitmasking we set it
+        //no clue why this hapens, might have to check on it some time later
+        rot 
+        31 shl
+        + + //add exp, mant, and sign
+      else over over > if* //e1 > e2
+        //first =, we have to scale the exps
+        over over - //e1 e2 diff
+        swap drop //e1 diff
+        f1 getMant swap drop 1 23 shl + swap //e1 m1 diff 
+        f2 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
+        swap 1 - //reduce diff
+        while dup 0 > do
+          1 - swap //e1 m1 diff m2
+          1 shr swap //e1 m1 m2 diff
+        end  
+        drop
+        //rest is very similar to the top 
+        + //e m
+        swap 127 + 23 shl swap //e m
+        f1 getSign swap drop //sign
+        rot rot //normalize mant s e1 m
+        while dup 16777215 > do
+          1 shr
+          swap 1 + 
+          swap
+        end
+        //bitmask mantissa
+        mantMask and
+        rot 
+        31 shl
+        + + //add exp, mant, and sign
+      else //e1 < e2
+        swap //e2 e1
+        //first =, we have to scale the exps
+        over over - //e2 e1 diff
+        swap drop //e2 diff
+        f2 getMant swap drop 8388608 + swap //e1 m1 diff 
+        f1 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
+        swap 1 - //reduce diff
+        while dup 0 > do
+          1 - swap //e1 m1 diff m2
+          1 shr swap //e1 m1 m2 diff
+        end  
+        drop
+        //rest is very similar to the top 
+        + //e m
+        swap 127 + 23 shl swap //e m
+        f1 getSign swap drop //sign
+        rot rot //normalize mant s e1 m
+        while dup 16777215 > do
+          1 shr
+          swap 1 + 
+          swap
+        end
+        //bitmask mantissa
+        mantMask and
+        rot 
+        31 shl
+        + + //add exp, mant, and sign
+      end
+    else //weird negative stuff
+      f1 getSign swap drop 0 = if
+         //f2 is negative
+         f1 getExp swap drop
+         f2 getExp swap drop
+         over over = if //e1 e2
+           //we just have to add the mants
+           drop //set exp
+           f1 getMant swap drop 8388608 + //e1 m1 added implicit 1
+           f2 getMant swap drop 8388608 + 
+           over over > if //f1 greater than f2
+             - 0
+           else
+             swap - 1
+           end
+           rot rot //normalize mant s e1 m
+           dup 0 = if
+             drop drop drop 0 //zero
+           else
+             while dup 8388608 < do
+               1 shl
+               swap 1 - 
+               swap
+             end
+             swap 127 + 23 shl swap
+             //bitmask mantissa
+             mantMask and 
+             rot 31 shl
+             + + //add exp, mant, and sign
+           end
+         else over over > if* //e1 e2
+           //normalize e2
+           1 + //first shift down 
+           over swap - //e1 diff
+           f2 getMant swap drop 1 shr 4194304 + //e1 diff mant 
+           swap shr //e1 m2
+           f1 getMant swap drop 8388608 + //e1 m2 m1 added implicit 1
+           swap //e1 m1 m2 
+           over over > if //f1 greater than f2
+             - 0
+           else
+             swap - 1
+           end
+           rot rot //normalize mant s e1 m
+           dup 0 = if
+             drop drop drop 0 //zero stuff
+           else
+             while dup 8388608 < do
+               1 shl
+               swap 1 - 
+               swap
+             end
+             swap 127 + 23 shl swap
+             //bitmask mantissa
+             mantMask and 
+             rot 31 shl
+             + + //add exp, mant, and sign
+           end
+         else
+           swap 
+           //normalize e1
+           1 + //first shift down 
+           over swap - //e2 diff
+           f1 getMant swap drop 1 shr 4194304 + //e2 diff mant 
+           swap shr //e2 m1
+           f2 getMant swap drop 8388608 + //e2 m1 m2 added implicit 1
+           swap //e2 m2 m1 
+           over over > if //f2 greater than f1
+             - 1
+           else
+             swap - 0
+           end
+           rot rot //normalize mant s e2 m
+           dup 0 = if
+             drop drop drop 0
+           else
+             while dup 8388608 < do
+               1 shl
+               swap 1 - 
+               swap
+             end
+             swap 127 + 23 shl swap
+             //bitmask mantissa
+             mantMask and 
+             rot 31 shl
+             + + //add exp, mant, and sign
+           end
+         end
+      else
+        f2 f1 fAdd fNeg 
+      end
+    end 
+  end
+end
+
+proc fSub int int -- int in
+  fNeg fAdd
+end
+
+proc fDiff int int -- int in
+   fSub fAbs
+end
+
+proc fMul int int -- int in
+    over over over over  //f1 f2 f1 f2 f1 f2
+    getMant swap drop swap getMant swap drop //f1 f2 f1 f2 m2 m1 (order doesnt matter for this
+    let m1 m2 in
+      over 0 = over 0 = lor if //check if any = 0
+        drop drop drop drop 0
+      else
+        getExp swap drop //f1 f2 f1 e2
+        swap getExp swap drop + //f1 f2 e 
+        m2 8388608 +
+        m1 8388608 + * //f1 f2 e res
+        //If this were 32-bit, we would have to downshift some
+        //But all integers all 64-bit in porth
+        //if we implement 64-bit floats, we will have to do some downshifting
+        //but with 32-bit floats and 64-bit ints, we're all good!
+        23 shr //TODO Test
+        dup 16777215 > if
+          1 shr //should only have to do this once 
+          swap 1 + swap //add one to the exponent
+        end
+        mantMask and //get rid of implicit 1  
+        swap 127 + 23 shl + //f1 f2 r
+        rot rot //r f1 f2
+        getSign swap drop swap getSign swap drop //r s1 s2
+        + //r s
+        dup 1 > if
+          drop 0 //1+1 = 2 -> 0
+        end
+        31 shl + //result
+      end
+    end
+end
+
+proc fFMA int int -- int in //fused multiply-add
+    //starts out with a normal multiply
+    over over over over  //f1 f2 f1 f2 f1 f2
+    getMant swap drop swap getMant swap drop //f1 f2 f1 f2 m1 m2 
+    let m1 m2 in
+      over 0 = over 0 = lor if //check if any = 0
+        drop drop drop drop 0
+      else
+        getExp swap drop //f1 f2 f1 e2
+        swap getExp swap drop + //f1 f2 e 
+        m2 8388608 +
+        m1 8388608 + * //f1 f2 e res
+        //If this were 32-bit, we would have to downshift some
+        //But all integers all 64-bit in porth
+        //if we implement 64-bit floats, we will have to do some downshifting
+        //but with 32-bti floats and 64-bit ints, we're all good!
+        23 shr 
+        //Before downshifting, we have to use fAdd code to add the other mantissa
+          
+        dup 16777215 > if
+          1 shr //should only have to do this once 
+          swap 1 + swap //add one to the exponent
+        end
+        mantMask and //get rid of implicit 1  
+        swap 127 + 23 shl + //f1 f2 r
+        rot rot //r f1 f2
+        getSign swap drop swap getSign swap drop //r s1 s2
+        + //r s
+        dup 1 > if
+          drop 0 //1+1 = 2 -> 0
+        end
+        31 shl + //result
+      end
+    end
+end
+proc fDiv int int -- int in
+  over over 
+  getMant swap drop swap getMant swap drop swap 
+  let f1 f2 m1 m2 in
+    f1 getExp swap drop
+    f2 getExp swap drop  - 
+    m1 8388608 + 
+    23 shl 
+    m2 8388608 + /  //f1 f2 e res
+    dup 8388608 < if
+      1 shl
+      swap 1 - swap
+    end
+    mantMask and
+    swap 127 + 23 shl + //r
+    f1 getSign swap drop f2 getSign swap drop //r s1 s2
+    + //r s
+    dup 1 > if
+      drop 0 //1+1 = 2 -> 0
+    end
+    31 shl + //result
+
+    //Time to round!
+    //There is problaby a better way to do this, but for now this works
+    //They way I'm doing this is:
+    //Calculate the numbers +1 and -1 from the mantissa, normalizing if neccessay
+    //multiply by the given divisor
+    //return the answer thats closest to the given divided
+
+    dup dup //r r r 
+    getMant 8388609 + //1<<23 + 1
+    //normalize down 
+    dup 16777215 > if
+          1 shr //should only have to do this once 
+          swap getExp 1 - setExp swap //add one to the exponent
+    end 
+    setMant
+    swap 
+    //now do the same with -1
+    getMant 8388607 + //1<<23 - 1
+    //normalize up
+    dup 8388608 < if
+      1 shl
+      swap getExp 1 + setExp swap
+    end
+    setMant
+
+    let r1 r2 r3 in //0 -1 +1
+      f1 r1 f2 fMul fDiff 
+      f1 r2 f2 fMul fDiff
+      f1 r3 f2 fMul fDiff
+      let d1 d2 d3 in
+        d2 d3 f< if 
+          d1 d2 f< if //d1 is the best
+            r1
+          else
+            r2
+          end
+        else
+          d1 d3 f< if //d1 is the best
+            r1
+          else
+            r3
+          end
+        end
+      end
+    end     
+  end
+end
+proc fDivRecip int int -- int in
+    dup 0 = if //zero
+        drop 0 = if //nan
+          NaN 
+        else
+          inf
+        end
+    else
+      //Using reciprocal and newton-raphson
+      //to get a good initial guess for 1/f2, we have scale it to be between 0/5 and 1. This is as simple as setting the exp to be 126 (-1)
+      //to ensure that the quotiant stays the same, we have to scale it by the same amount, meaning e1 -> e1 - (e2 + 1)
+      //all this is from https://en.wikipedia.org/wiki/Division_algorithm#Newton.E2.80.93Raphson_division
+      //f1 f2
+      let f1 f2 in
+        f2 getExp swap drop //e2
+        f1 getExp rot //f1 e1 e2
+        1 + - setExp  //f1
+        f2 0 1 - setExp //change to -1 later f1 f2
+        dup 1072754929 fMul 1077195957 swap fSub //special consts
+        3 //f1 f2 xi c
+        //using equ xi1 = xi + xi(1 - f2xi)
+        while dup 0 > do
+          1 - 
+          rot rot //f1 c f2 xi
+          over over //f1 c f2 xi f2 xi
+          fMul 1065353216 swap fSub //f1 c f2 xi (1 - xi*f2)  
+          over fMul fAdd //f1 c f2 xi1
+          rot
+        end
+        //f1 f2 xi c
+        //now we have the reciprocal, we can just use fMul
+        drop swap drop //f1 xi
+        fMul
+      end
+    end
+end
+
+  
+

@@ -1,0 +1,8 @@
+//extra arith functions
+include "std.porth"
+include "fcore.porth"
+
+proc fTruct int -- int in //round towards zero
+//IMPORTANT: fMod should keep the sign of the divisor, while fRem should agree with the dividend
+proc fMod int int -- int in
+  

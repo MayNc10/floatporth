@@ -1,0 +1,42 @@
+//Trigonometry library for float
+include "std.porth"
+include "fcore.porth"
+include "arith.porth"
+include "exp.porth"
+
+const PI 1078530011 end
+const 2PI 1086918619 end
+const PI/2 1070141403 end
+
+//TODO: borken in fSub i think
+proc fSinNorm int -- int in //sine normalized in radians between 0 - 2pi
+  //first property of sine: sine(x) where x > PI = -1 * sine(2PI - x), allows us to calculate only between 0 and PI
+  1065353216 over // x multiplier x
+  PI f> if
+   drop
+   2PI swap fSub 
+   3212836864 //-1
+  end
+  swap
+  
+  //similar thing: if x > PI/2 sine(x) = sine(PI - x)
+  dup PI/2 f> if
+    PI swap fSub
+  end
+  //now the valvue is between 0 and PI/2
+  //NOTE: the function used here is Bhaskara I's sine approximation. If we need it to be more accurate, use the power series for sine
+  dup //mul x x
+  PI swap fSub
+  let x complement in
+    1098907648 //16 in float
+    x fMul complement fMul //16x(pi-x)
+    1111843936 //5PI^2
+    1082130432 //4
+    x fMul complement fMul //4x(pi-x)
+    fSub //16x(pi-x) (5pi^2 - 4x(pi-x))
+    fDiv
+  end //multiplier x 
+  fMul 
+end
+
+
