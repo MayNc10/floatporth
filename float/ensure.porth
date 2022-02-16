@@ -60,6 +60,12 @@ proc main in
   4 tofloat dup f= land
   6 tofloat 5 tofloat f!= land
   +zero -zero f= land 
+  qNaN qNaN f= lnot land
+  qNaN qNaN f!= land
+  qNaN 1 f> lnot land
+  qNaN 1 f< lnot land
+  qNaN 1 f<= lnot land
+  qNaN 1 f>= lnot land
   
   if
     "PASSED: " puts

@@ -11,45 +11,73 @@ inline proc convZeros int int -- int int in
   end
 end
 
+inline proc eitherNan int int -- int int bool in
+  over dup qNaN = swap sNaN = lor over dup qNaN = swap sNaN = lor lor
+end
+
 proc f< int int -- bool in
-  convZeros
-  fNeg swap fNeg swap 
-  over over
-  fIsPos swap fIsPos land if //check if both negative
-    //if both negative, we actually want f1 to be greaater (because a greater negative is smaller)
-    >
+  eitherNan if
+    drop drop false
   else
-    <
+    convZeros
+    fNeg swap fNeg swap 
+    over over
+    fIsPos swap fIsPos land if //check if both negative
+      //if both negative, we actually want f1 to be greaater (because a greater negative is smaller)
+      >
+    else
+      <
+    end
   end
 end
 
 proc f> int int -- bool in
-  convZeros
-  //same as f<
-  fNeg swap fNeg swap
-  over over
-  fIsPos swap fIsPos land if
-    <
+  eitherNan if
+    drop drop false
   else
-    >
+    convZeros
+    //same as f<
+    fNeg swap fNeg swap
+    over over
+    fIsPos swap fIsPos land if
+      <
+    else
+      >
+    end
   end
 end
 
 proc f>= int int -- bool in
-  f< lnot
+  eitherNan if
+    drop drop false
+  else
+    f< lnot
+  end
 end
 
 proc f<= int int -- bool in
-  f> lnot
+  eitherNan if
+    drop drop false
+  else
+    f> lnot
+  end
 end
 
 proc f= int int -- bool in
-  convZeros
-  =
+  eitherNan if
+    drop drop false
+  else
+    convZeros
+    =
+  end
 end
 
 proc f!= int int -- bool in
-  convZeros
-  !=
+  eitherNan if
+    drop drop true
+  else
+    convZeros
+    !=
+  end
 end
 
