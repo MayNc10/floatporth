@@ -59,6 +59,7 @@ proc main in
   4 tofloat dup f<= land
   4 tofloat dup f= land
   6 tofloat 5 tofloat f!= land
+  +zero -zero f= land 
   
   if
     "PASSED: " puts

@@ -4,6 +4,13 @@ include "sign.porth"
 //Comparison library for float
 
 proc f< int int -- bool in
+  dup -zero = if
+     drop +zero
+  end 
+  over -zero = if 
+     drop +zero 
+  end
+
   fNeg swap fNeg swap 
   over over
   fIsPos swap fIsPos land if //check if both negative
@@ -15,6 +22,12 @@ proc f< int int -- bool in
 end
 
 proc f> int int -- bool in
+  dup -zero = if
+     drop +zero
+  end 
+  over -zero = if 
+     drop +zero 
+  end
   //same as f<
   fNeg swap fNeg swap
   over over
@@ -34,10 +47,22 @@ proc f<= int int -- bool in
 end
 
 proc f= int int -- bool in
+  dup -zero = if
+     drop +zero
+  end 
+  over -zero = if 
+     drop +zero 
+  end
   =
 end
 
 proc f!= int int -- bool in
+  dup -zero = if
+     drop +zero
+  end 
+  over -zero = if 
+     drop +zero 
+  end
   !=
 end
 
