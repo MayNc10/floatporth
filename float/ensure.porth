@@ -9,7 +9,7 @@ proc main in
   //test arithmatic
   1 tofloat 2 tofloat fAdd toint 3 = 
   1 tofloat 1 tofloat fSub toint 0 = land
-  1 tofloat 0 1 - tofloat fAdd toint 0 = land
+  1 tofloat -1 tofloat fAdd toint 0 = land
   
   if
     "PASSED: " puts
@@ -23,8 +23,8 @@ proc main in
   46 tofloat 5 tofloat fMul toint 230 = land
   67 tofloat 0 tofloat fMul toint 0 = land
   0 tofloat dup fMul toint 0 = land
-  0 1 - tofloat 32 tofloat fMul toint 0 32 - = land
-  0 1 - tofloat 0 32 - tofloat fMul toint 32 = land
+  -1 tofloat 32 tofloat fMul toint -32 = land
+  -1 tofloat -32 tofloat fMul toint 32 = land
  
   if
     "PASSED: " puts
@@ -66,7 +66,9 @@ proc main in
   qNaN 1 f< lnot land
   qNaN 1 f<= lnot land
   qNaN 1 f>= lnot land
-  
+  inf 33554432 tofloat f> land
+  -inf -33554432  tofloat f< land
+
   if
     "PASSED: " puts
   else
