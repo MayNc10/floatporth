@@ -2,15 +2,17 @@ include "core.porth"
 include "fcore.porth"
 include "sign.porth"
 //Comparison library for float
-
-proc f< int int -- bool in
+inline proc convZeros int int -- int int in
   dup -zero = if
      drop +zero
   end 
   over -zero = if 
      drop +zero 
   end
+end
 
+proc f< int int -- bool in
+  convZeros
   fNeg swap fNeg swap 
   over over
   fIsPos swap fIsPos land if //check if both negative
@@ -22,12 +24,7 @@ proc f< int int -- bool in
 end
 
 proc f> int int -- bool in
-  dup -zero = if
-     drop +zero
-  end 
-  over -zero = if 
-     drop +zero 
-  end
+  convZeros
   //same as f<
   fNeg swap fNeg swap
   over over
@@ -47,22 +44,12 @@ proc f<= int int -- bool in
 end
 
 proc f= int int -- bool in
-  dup -zero = if
-     drop +zero
-  end 
-  over -zero = if 
-     drop +zero 
-  end
+  convZeros
   =
 end
 
 proc f!= int int -- bool in
-  dup -zero = if
-     drop +zero
-  end 
-  over -zero = if 
-     drop +zero 
-  end
+  convZeros
   !=
 end
 
