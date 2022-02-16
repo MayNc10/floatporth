@@ -33,8 +33,19 @@ proc main in
   end
   "Multiplication Test\n" puts
 
-  //Test div
+  //test division
+  18 tofloat 3 tofloat fDiv toint 6 =
+  1 tofloat 2 tofloat fDiv 1056964608 = land
+  1 tofloat 10 tofloat fDiv 1036831949 = land //test rounding
 
+  if
+    "PASSED: " puts
+  else
+    "FAILED: " puts
+  end
+
+  "Division test\n" puts
+  
   //Test comparisons
   1 tofloat 5 tofloat f< 
   1 tofloat 5 tofloat f<= land
