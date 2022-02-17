@@ -2,7 +2,6 @@
 include "fcore.porth"
 include "arith.porth"
 include "comp.porth"
-include "sign.porth"
 include "trig.porth"
 
 proc main in 

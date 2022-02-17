@@ -1,4 +1,4 @@
-include "std.porth" //TODO when we update, change to core.porth
+include "core.porth" 
 const NaN 2139095041 end
 const qNaN 2139095041 end
 const sNaN 4290772993 end
@@ -44,7 +44,7 @@ proc tofloat int -- int in //doesnt handle negative ints
      dup 0 != if //if zero, just leave zero on stack
        false swap
        dup 0 < if
-         not 1 + //TODO: when we update, this should be neg
+         neg //TODO: when we update, this should be neg
          swap drop true swap //reset bool
        end
        0 0 //exp and mantissa
@@ -97,4 +97,25 @@ proc toint int -- int in
   end
 end
   
+inline proc fNeg int -- int in
+  2147483648 + //1<<31
+  overflowMask and //bitmask
+end
 
+inline proc fAbs int -- int in
+  2147483647 and //bitmask
+end
+
+inline proc fCopysign int int -- int in
+  2147483648 and //bitmask sign bit
+  +
+  overflowMask and
+end
+
+inline proc fIsNeg int -- bool in
+  2147483647 >
+end
+
+inline proc fIsPos int -- bool in
+  2147483648 <
+end

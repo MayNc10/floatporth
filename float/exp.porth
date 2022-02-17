@@ -1,6 +1,5 @@
 include "fcore.porth"
 include "arith.porth"
-include "sign.porth"
 
 proc fPowI int int -- int in
   dup 0 < if

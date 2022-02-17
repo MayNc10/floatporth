@@ -1,9 +1,8 @@
 include "fcore.porth"
-include "sign.porth"
 include "comp.porth"
 include "std.porth"
 //TODO: Figure out rounding!
-//TODO  when should we use -0 or should we just always return +0
+//TODO: Make sure that we always return the correctly signed zero 
 
 proc fAdd int int -- int in
   let f1 f2 in
@@ -21,7 +20,6 @@ proc fAdd int int -- int in
         f1 getSign swap drop //saame signs 
         rot rot //normalize mant s e1 m
         while dup 16777215 > do
-          "while loop" puts
           1 shr
           swap 1 + 
           swap
@@ -240,13 +238,21 @@ proc fFMA int int -- int in //fused multiply-add
         //But all integers all 64-bit in porth
         //if we implement 64-bit floats, we will have to do some downshifting
         //but with 32-bti floats and 64-bit ints, we're all good!
-        23 shr 
         //Before downshifting, we have to use fAdd code to add the other mantissa
-          
-        dup 16777215 > if
-          1 shr //should only have to do this once 
-          swap 1 + swap //add one to the exponent
+        //First, figure out how much we're upshifted by
+        //the simple way to do that is to just do it with a duplicate
+        23 over 
+        23 shr
+        16777215 > if
+            1 +  
+            rot 1 + //res sft e
+            swap rot //e sft res
         end
+  
+        //now we know how much we're upshifted by
+        //now to add stuff
+        drop //added to allow it to pass typechecking
+
         mantMask and //get rid of implicit 1  
         swap 127 + 23 shl + //f1 f2 r
         rot rot //r f1 f2
@@ -345,7 +351,7 @@ proc fDivRecip int int -- int in
         f2 getExp swap drop //e2
         f1 getExp rot //f1 e1 e2
         1 + - setExp  //f1
-        f2 0 1 - setExp //change to -1 later f1 f2
+        f2 -1 setExp //change to -1 later f1 f2
         dup 1072754929 fMul 1077195957 swap fSub //special consts
         3 //f1 f2 xi c
         //using equ xi1 = xi + xi(1 - f2xi)

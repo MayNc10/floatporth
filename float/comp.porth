@@ -1,6 +1,5 @@
 include "core.porth"
 include "fcore.porth"
-include "sign.porth"
 //Comparison library for float
 inline proc convZeros int int -- int int in
   dup -zero = if
