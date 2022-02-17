@@ -8,7 +8,8 @@ const +zero 0 end
 const -zero 2147483648 end
 
 const mantMask 8388607 end
-const signMask 2147483647 end
+const expMask 2147483647 end
+const signBit 2147483648 end
 
 const overflowMask 4294967295 end
 
@@ -16,11 +17,11 @@ proc getSign int -- int int in
   dup 31 shr
 end
 proc setSign int int -- int in //float and sign
-  swap signMask and swap 31 shl or
+  swap expMask and swap 31 shl or
 end
 
 proc getExp int -- int int in
-  dup signMask and 23 shr 127 -
+  dup expMask and 23 shr 127 -
 end
 proc setExp int int -- int in
   127 + swap //e f
@@ -103,11 +104,13 @@ inline proc fNeg int -- int in
 end
 
 inline proc fAbs int -- int in
-  2147483647 and //bitmask
+  expMask and //bitmask
 end
 
 inline proc fCopysign int int -- int in
-  2147483648 and //bitmask sign bit
+  signBit and
+  swap 
+  expMask and //bitmask sign bit
   +
   overflowMask and
 end
@@ -117,5 +120,131 @@ inline proc fIsNeg int -- bool in
 end
 
 inline proc fIsPos int -- bool in
-  2147483648 <
+  expMask <
 end
+
+inline proc fIsNaN int -- bool in
+  dup inf > swap -inf != land  
+end
+
+inline proc fSign int -- int in //NOTE: should this return 1 for -0? I don't think so, so it doesn't
+  fIsPos if
+    1 tofloat
+  else
+    -1 tofloat
+  end
+end
+
+inline proc convZeros int int -- int int in
+  dup -zero = if
+     drop +zero
+  end 
+  over -zero = if 
+     drop +zero 
+  end
+end
+
+inline proc eitherNan int int -- int int bool in
+  over dup qNaN = swap sNaN = lor over dup qNaN = swap sNaN = lor lor
+end
+
+proc f< int int -- bool in
+  eitherNan if
+    drop drop false
+  else
+    convZeros
+    fNeg swap fNeg swap 
+    over over
+    fIsPos swap fIsPos land if //check if both negative
+      //if both negative, we actually want f1 to be greaater (because a greater negative is smaller)
+      >
+    else
+      <
+    end
+  end
+end
+
+proc f> int int -- bool in
+  eitherNan if
+    drop drop false
+  else
+    convZeros
+    //same as f<
+    fNeg swap fNeg swap
+    over over
+    fIsPos swap fIsPos land if
+      <
+    else
+      >
+    end
+  end
+end
+
+proc f>= int int -- bool in
+  eitherNan if
+    drop drop false
+  else
+    f< lnot
+  end
+end
+
+proc f<= int int -- bool in
+  eitherNan if
+    drop drop false
+  else
+    f> lnot
+  end
+end
+
+proc f= int int -- bool in
+  eitherNan if
+    drop drop false
+  else
+    convZeros
+    =
+  end
+end
+
+proc f!= int int -- bool in
+  eitherNan if
+    drop drop true
+  else
+    convZeros
+    !=
+  end
+end
+
+proc fNextAfter int int -- int in //NOTE: this function returns the same numbers for +0 and -0
+  let f1 f2 in
+    f1 f2 = if
+      f1
+    else
+      f1 0 f= f1 fSign f2 fSign != land if
+        f2 fSign 1 = if
+          1
+        else
+          2147483649 //largest number greater than zero
+        end
+      else
+        f1 f2 f> if
+          f1 1 - 
+        else
+          f1 1 +
+        end
+      end
+    end
+  end
+end
+
+proc fNextTo int -- int int int in //NOTE: this function returns the same numbers for +0 and -0
+  dup 0 f= if
+    2147483649 1 //numbers next to 0
+  else
+    dup 1 + dup 1 - 
+  end
+end
+
+    
+
+    
+

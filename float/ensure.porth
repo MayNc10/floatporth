@@ -1,10 +1,28 @@
 //make sure that everything works
 include "fcore.porth"
 include "arith.porth"
-include "comp.porth"
 include "trig.porth"
 
 proc main in 
+  //check non-essential fcore functions (essential functions are tofloat/toint and the getters/setters, and are assumed to work
+  1 tofloat fNeg -1 tofloat = 
+  1 tofloat dup fAbs = land 
+  -zero fAbs +zero = land 
+  -zero +zero fCopysign +zero = land 
+  -1 tofloat fIsNeg land 
+  19 tofloat fIsPos land 
+  25 tofloat fSign 1 tofloat = land 
+  -zero fSign -1 tofloat = land 
+  7 tofloat dup 8 tofloat fNextAfter 6 fNextAfter = land
+  1 tofloat fIsNaN lnot land
+  qNaN fIsNaN land
+  if 
+    "PASSED: " puts
+  else
+    "FAILED: " puts
+  end
+  "Sign manipulation test\n" puts
+
   //test arithmatic
   1 tofloat 2 tofloat fAdd toint 3 = 
   1 tofloat 1 tofloat fSub toint 0 = land
@@ -15,7 +33,7 @@ proc main in
   else
     "FAILED: " puts
   end
-  "Addition/Subtraction test \n" puts
+  "Addition/Subtraction test\n" puts
   
   //Test mul
   1 tofloat 5 tofloat fMul toint 5 = 
@@ -73,5 +91,5 @@ proc main in
   else
     "FAILED: " puts
   end
-  "Comparison Test\n" puts
+  "Comparison test\n" puts
 end

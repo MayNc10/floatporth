@@ -1,5 +1,4 @@
 include "fcore.porth"
-include "comp.porth"
 include "std.porth"
 //TODO: Figure out rounding!
 //TODO: Make sure that we always return the correctly signed zero 
