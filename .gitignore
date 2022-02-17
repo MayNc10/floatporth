@@ -11,3 +11,4 @@ porth
 float/*.asm
 float/*.o
 float/test.porth
+*
