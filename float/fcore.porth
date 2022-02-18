@@ -13,8 +13,12 @@ const signBit 2147483648 end
 
 const overflowMask 4294967295 end
 
+//NOTE: still trying to figure out a good name for the 'reduceTo' functions
 proc getSign int -- int int in
   dup 31 shr
+end
+proc reduceToSign int -- int in
+  31 shr
 end
 proc setSign int int -- int in //float and sign
   swap expMask and swap 31 shl or
@@ -22,6 +26,9 @@ end
 
 proc getExp int -- int int in
   dup expMask and 23 shr 127 -
+end
+proc reduceToExp int -- int in
+  expMask and 23 shr 127 -
 end
 proc setExp int int -- int in
   127 + swap //e f
@@ -36,6 +43,9 @@ end
 
 proc getMant int -- int int in
   dup mantMask and
+end
+proc reduceToMant int -- int in
+  mantMask and
 end
 proc setMant int int -- int in
   swap 22 shr 22 shl or
@@ -145,7 +155,7 @@ inline proc convZeros int int -- int int in
 end
 
 inline proc eitherNan int int -- int int bool in
-  over dup qNaN = swap sNaN = lor over dup qNaN = swap sNaN = lor lor
+  over fIsNaN over fIsNaN lor
 end
 
 proc f< int int -- bool in
