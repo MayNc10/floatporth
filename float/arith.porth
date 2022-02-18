@@ -107,7 +107,7 @@ proc fAdd int int -- int in
             dup 0 = if
               drop drop drop 0 //zero
             else
-              while dup 8388608 < do
+              while dup mantMin < do
                 1 shl
                 swap 1 - 
                 swap
@@ -135,7 +135,7 @@ proc fAdd int int -- int in
             dup 0 = if
               drop drop drop 0 //zero stuff
             else
-              while dup 8388608 < do
+              while dup mantMin < do
                 1 shl
                 swap 1 - 
                 swap
@@ -164,7 +164,7 @@ proc fAdd int int -- int in
             dup 0 = if
               drop drop drop 0
             else
-              while dup 8388608 < do
+              while dup mantMin < do
                 1 shl
                 swap 1 - 
                 swap
@@ -281,7 +281,7 @@ proc fDiv int int -- int in
     m1 8388608 + 
     23 shl 
     m2 8388608 + /  //f1 f2 e res
-    dup 8388608 < if
+    dup mantMin < if
       1 shl
       swap 1 - swap
     end
@@ -313,7 +313,7 @@ proc fDiv int int -- int in
     //now do the same with -1
     getMant 8388607 + //1<<23 - 1
     //normalize up
-    dup 8388608 < if
+    dup mantMin < if
       1 shl
       swap getExp 1 + setExp swap
     end
