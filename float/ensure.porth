@@ -84,7 +84,7 @@ proc main in
   qNaN 1 f<= lnot land
   qNaN 1 f>= lnot land
   inf 33554432 tofloat f> land
-  -inf -33554432  tofloat f< land
+  -inf -33554432 tofloat f< land
 
   if
     "PASSED: " puts
@@ -92,4 +92,24 @@ proc main in
     "FAILED: " puts
   end
   "Comparison test\n" puts
+
+  //Test indentification
+  56 tofloat fIsPos
+  56 tofloat fIsNeg lnot land
+  -4 tofloat fIsNeg land
+  -4 tofloat fIsPos lnot land
+  qNaN fIsNaN land
+  76 tofloat fIsNaN lnot land
+  -76 tofloat fIsNaN lnot land 
+  -34 tofloat qNaN eitherNan swap drop swap drop land
+  qNaN dup eitherNan swap drop swap drop land
+  -5 tofloat 27 tofloat eitherNan swap drop swap drop lnot land
+
+  if
+    "PASSED: " puts
+  else
+    "FAILED: " puts
+  end
+  "Identification test\n" puts
+   
 end
