@@ -8,6 +8,7 @@ const +zero 0 end
 const -zero 2147483648 end
 
 const mantMask 8388607 end
+const mantMin 8388608 end
 const expMask 2147483647 end
 const signBit 2147483648 end
 

@@ -5,178 +5,182 @@ include "std.porth"
 
 proc fAdd int int -- int in
   let f1 f2 in
-    f1 getSign swap drop
-    f2 getSign swap drop
-    + 1 != if
-      f1 getExp swap drop
-      f2 getExp swap drop
-      over over = if //e1 e2
-        //we just have to add the mants
-        drop 127 + 23 shl //set exp\
-        f1 getMant swap drop //e1 m1 added implicit 1
-        f2 getMant swap drop +
-        16777216 + //add both implict ones
-        f1 getSign swap drop //saame signs 
-        rot rot //normalize mant s e1 m
-        while dup 16777215 > do
-          1 shr
-          swap 1 + 
-          swap
+    f1 f2 eitherNan if 
+      qNaN
+    else
+      f1 getSign swap drop
+      f2 getSign swap drop
+      + 1 != if
+        f1 getExp swap drop
+        f2 getExp swap drop
+        over over = if //e1 e2
+          //we just have to add the mants
+          drop 127 + 23 shl //set exp\
+          f1 getMant swap drop //e1 m1 added implicit 1
+          f2 getMant swap drop +
+          16777216 + //add both implict ones
+          f1 getSign swap drop //saame signs 
+          rot rot //normalize mant s e1 m
+          while dup 16777215 > do
+            1 shr
+            swap 1 + 
+            swap
+          end
+          //bitmask mantissa
+          //mantMask and //WEIRD BUG HERE: For some reason the lower bit of exp never gets set, so by not bitmasking we set it
+          //no clue why this hapens, might have to check on it some time later
+          rot 
+          31 shl
+          + + //add exp, mant, and sign
+        else over over > if* //e1 > e2
+          //first =, we have to scale the exps
+          over over - //e1 e2 diff
+          swap drop //e1 diff
+          f1 getMant swap drop 1 23 shl + swap //e1 m1 diff 
+          f2 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
+          swap 1 - //reduce diff
+          while dup 0 > do
+            1 - swap //e1 m1 diff m2
+            1 shr swap //e1 m1 m2 diff
+          end  
+          drop
+          //rest is very similar to the top 
+          + //e m
+          swap 127 + 23 shl swap //e m
+          f1 getSign swap drop //sign
+          rot rot //normalize mant s e1 m
+          while dup 16777215 > do
+            1 shr
+            swap 1 + 
+            swap
+          end
+          //bitmask mantissa
+          mantMask and
+          rot 
+          31 shl
+          + + //add exp, mant, and sign
+        else //e1 < e2
+          swap //e2 e1
+          //first =, we have to scale the exps
+          over over - //e2 e1 diff
+          swap drop //e2 diff
+          f2 getMant swap drop 8388608 + swap //e1 m1 diff 
+          f1 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
+          swap 1 - //reduce diff
+          while dup 0 > do
+            1 - swap //e1 m1 diff m2
+            1 shr swap //e1 m1 m2 diff
+          end  
+          drop
+          //rest is very similar to the top 
+          + //e m
+          swap 127 + 23 shl swap //e m
+          f1 getSign swap drop //sign
+          rot rot //normalize mant s e1 m
+          while dup 16777215 > do
+            1 shr
+            swap 1 + 
+            swap
+          end
+          //bitmask mantissa
+          mantMask and
+          rot 
+          31 shl
+          + + //add exp, mant, and sign
         end
-        //bitmask mantissa
-        //mantMask and //WEIRD BUG HERE: For some reason the lower bit of exp never gets set, so by not bitmasking we set it
-        //no clue why this hapens, might have to check on it some time later
-        rot 
-        31 shl
-        + + //add exp, mant, and sign
-      else over over > if* //e1 > e2
-        //first =, we have to scale the exps
-        over over - //e1 e2 diff
-        swap drop //e1 diff
-        f1 getMant swap drop 1 23 shl + swap //e1 m1 diff 
-        f2 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
-        swap 1 - //reduce diff
-        while dup 0 > do
-          1 - swap //e1 m1 diff m2
-          1 shr swap //e1 m1 m2 diff
-        end  
-        drop
-        //rest is very similar to the top 
-        + //e m
-        swap 127 + 23 shl swap //e m
-        f1 getSign swap drop //sign
-        rot rot //normalize mant s e1 m
-        while dup 16777215 > do
-          1 shr
-          swap 1 + 
-          swap
+      else //weird negative stuff
+        f1 getSign swap drop 0 = if
+          //f2 is negative
+          f1 getExp swap drop
+          f2 getExp swap drop
+          over over = if //e1 e2
+            //we just have to add the mants
+            drop //set exp
+            f1 getMant swap drop 8388608 + //e1 m1 added implicit 1
+            f2 getMant swap drop 8388608 + 
+            over over > if //f1 greater than f2
+              - 0
+            else
+              swap - 1
+            end
+            rot rot //normalize mant s e1 m
+            dup 0 = if
+              drop drop drop 0 //zero
+            else
+              while dup 8388608 < do
+                1 shl
+                swap 1 - 
+                swap
+              end
+              swap 127 + 23 shl swap
+              //bitmask mantissa
+              mantMask and 
+              rot 31 shl
+              + + //add exp, mant, and sign
+            end
+          else over over > if* //e1 e2
+            //normalize e2
+            1 + //first shift down 
+            over swap - //e1 diff
+            f2 getMant swap drop 1 shr 4194304 + //e1 diff mant 
+            swap shr //e1 m2
+            f1 getMant swap drop 8388608 + //e1 m2 m1 added implicit 1
+            swap //e1 m1 m2 
+            over over > if //f1 greater than f2
+              - 0
+            else
+              swap - 1
+            end
+            rot rot //normalize mant s e1 m
+            dup 0 = if
+              drop drop drop 0 //zero stuff
+            else
+              while dup 8388608 < do
+                1 shl
+                swap 1 - 
+                swap
+              end
+              swap 127 + 23 shl swap
+              //bitmask mantissa
+              mantMask and 
+              rot 31 shl
+              + + //add exp, mant, and sign
+            end
+          else
+            swap 
+            //normalize e1
+            1 + //first shift down 
+            over swap - //e2 diff
+            f1 getMant swap drop 1 shr 4194304 + //e2 diff mant 
+            swap shr //e2 m1
+            f2 getMant swap drop 8388608 + //e2 m1 m2 added implicit 1
+            swap //e2 m2 m1 
+            over over > if //f2 greater than f1
+              - 1
+            else
+              swap - 0
+            end
+            rot rot //normalize mant s e2 m
+            dup 0 = if
+              drop drop drop 0
+            else
+              while dup 8388608 < do
+                1 shl
+                swap 1 - 
+                swap
+              end
+              swap 127 + 23 shl swap
+              //bitmask mantissa
+              mantMask and 
+              rot 31 shl
+              + + //add exp, mant, and sign
+            end
+          end
+        else
+          f2 f1 fAdd fNeg 
         end
-        //bitmask mantissa
-        mantMask and
-        rot 
-        31 shl
-        + + //add exp, mant, and sign
-      else //e1 < e2
-        swap //e2 e1
-        //first =, we have to scale the exps
-        over over - //e2 e1 diff
-        swap drop //e2 diff
-        f2 getMant swap drop 8388608 + swap //e1 m1 diff 
-        f1 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
-        swap 1 - //reduce diff
-        while dup 0 > do
-          1 - swap //e1 m1 diff m2
-          1 shr swap //e1 m1 m2 diff
-        end  
-        drop
-        //rest is very similar to the top 
-        + //e m
-        swap 127 + 23 shl swap //e m
-        f1 getSign swap drop //sign
-        rot rot //normalize mant s e1 m
-        while dup 16777215 > do
-          1 shr
-          swap 1 + 
-          swap
-        end
-        //bitmask mantissa
-        mantMask and
-        rot 
-        31 shl
-        + + //add exp, mant, and sign
-      end
-    else //weird negative stuff
-      f1 getSign swap drop 0 = if
-         //f2 is negative
-         f1 getExp swap drop
-         f2 getExp swap drop
-         over over = if //e1 e2
-           //we just have to add the mants
-           drop //set exp
-           f1 getMant swap drop 8388608 + //e1 m1 added implicit 1
-           f2 getMant swap drop 8388608 + 
-           over over > if //f1 greater than f2
-             - 0
-           else
-             swap - 1
-           end
-           rot rot //normalize mant s e1 m
-           dup 0 = if
-             drop drop drop 0 //zero
-           else
-             while dup 8388608 < do
-               1 shl
-               swap 1 - 
-               swap
-             end
-             swap 127 + 23 shl swap
-             //bitmask mantissa
-             mantMask and 
-             rot 31 shl
-             + + //add exp, mant, and sign
-           end
-         else over over > if* //e1 e2
-           //normalize e2
-           1 + //first shift down 
-           over swap - //e1 diff
-           f2 getMant swap drop 1 shr 4194304 + //e1 diff mant 
-           swap shr //e1 m2
-           f1 getMant swap drop 8388608 + //e1 m2 m1 added implicit 1
-           swap //e1 m1 m2 
-           over over > if //f1 greater than f2
-             - 0
-           else
-             swap - 1
-           end
-           rot rot //normalize mant s e1 m
-           dup 0 = if
-             drop drop drop 0 //zero stuff
-           else
-             while dup 8388608 < do
-               1 shl
-               swap 1 - 
-               swap
-             end
-             swap 127 + 23 shl swap
-             //bitmask mantissa
-             mantMask and 
-             rot 31 shl
-             + + //add exp, mant, and sign
-           end
-         else
-           swap 
-           //normalize e1
-           1 + //first shift down 
-           over swap - //e2 diff
-           f1 getMant swap drop 1 shr 4194304 + //e2 diff mant 
-           swap shr //e2 m1
-           f2 getMant swap drop 8388608 + //e2 m1 m2 added implicit 1
-           swap //e2 m2 m1 
-           over over > if //f2 greater than f1
-             - 1
-           else
-             swap - 0
-           end
-           rot rot //normalize mant s e2 m
-           dup 0 = if
-             drop drop drop 0
-           else
-             while dup 8388608 < do
-               1 shl
-               swap 1 - 
-               swap
-             end
-             swap 127 + 23 shl swap
-             //bitmask mantissa
-             mantMask and 
-             rot 31 shl
-             + + //add exp, mant, and sign
-           end
-         end
-      else
-        f2 f1 fAdd fNeg 
-      end
-    end 
+      end 
+    end
   end
 end
 
@@ -189,6 +193,9 @@ proc fDiff int int -- int in
 end
 
 proc fMul int int -- int in
+  over over eitherNan if
+    drop drop qNaN
+  else
     over over over over  //f1 f2 f1 f2 f1 f2
     getMant swap drop swap getMant swap drop //f1 f2 f1 f2 m2 m1 (order doesnt matter for this
     let m1 m2 in
@@ -219,9 +226,10 @@ proc fMul int int -- int in
         31 shl + //result
       end
     end
+  end
 end
 
-proc fFMA int int -- int in //fused multiply-add
+proc fFMA int int -- int in //TODO: not implemented yet!
     //starts out with a normal multiply
     over over over over  //f1 f2 f1 f2 f1 f2
     getMant swap drop swap getMant swap drop //f1 f2 f1 f2 m1 m2 
