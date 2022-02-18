@@ -135,7 +135,7 @@ inline proc fIsPos int -- bool in
 end
 
 inline proc fIsNaN int -- bool in
-  dup inf > swap -inf != land  
+  dup dup inf >  swap -zero < land swap -inf != land   
 end
 
 inline proc fSign int -- int in //NOTE: should this return 1 for -0? I don't think so, so it doesn't
@@ -164,10 +164,9 @@ proc f< int int -- bool in
     drop drop false
   else
     convZeros
-    fNeg swap fNeg swap 
     over over
-    fIsPos swap fIsPos land if //check if both negative
-      //if both negative, we actually want f1 to be greaater (because a greater negative is smaller)
+    fIsNeg swap fIsNeg land if //check if both negative
+      //if both negative, we actually want f1 to be greater (because a greater negative is smaller)
       >
     else
       <
