@@ -3,6 +3,14 @@ include "fcore.porth"
 include "arith.porth"
 include "trig.porth"
 
+proc check bool in
+  if 
+    "PASSED: " puts
+  else
+    "FAILED: " puts
+  end
+end
+
 proc main in 
   //check non-essential fcore functions (essential functions are tofloat/toint and the getters/setters, and are assumed to work
   1 tofloat fNeg -1 tofloat = 
@@ -16,11 +24,8 @@ proc main in
   7 tofloat dup 8 tofloat fNextAfter 6 fNextAfter = land
   1 tofloat fIsNaN lnot land
   qNaN fIsNaN land
-  if 
-    "PASSED: " puts
-  else
-    "FAILED: " puts
-  end
+
+  check
   "Sign manipulation test\n" puts
 
   //test arithmatic
@@ -28,11 +33,7 @@ proc main in
   1 tofloat 1 tofloat fSub toint 0 = land
   1 tofloat -1 tofloat fAdd toint 0 = land
   
-  if
-    "PASSED: " puts
-  else
-    "FAILED: " puts
-  end
+  check
   "Addition/Subtraction test\n" puts
   
   //Test mul
@@ -43,11 +44,7 @@ proc main in
   -1 tofloat 32 tofloat fMul toint -32 = land
   -1 tofloat -32 tofloat fMul toint 32 = land
  
-  if
-    "PASSED: " puts
-  else
-    "FAILED: " puts
-  end
+  check
   "Multiplication Test\n" puts
 
   //test division
@@ -55,12 +52,7 @@ proc main in
   1 tofloat 2 tofloat fDiv 1056964608 = land
   1 tofloat 10 tofloat fDiv 1036831949 = land //test rounding
 
-  if
-    "PASSED: " puts
-  else
-    "FAILED: " puts
-  end
-
+  check
   "Division test\n" puts
   
   //Test comparisons
@@ -86,11 +78,7 @@ proc main in
   inf 33554432 tofloat f> land
   -inf -33554432 tofloat f< land
 
-  if
-    "PASSED: " puts
-  else
-    "FAILED: " puts
-  end
+  check
   "Comparison test\n" puts
 
   //Test indentification
@@ -105,11 +93,14 @@ proc main in
   qNaN dup eitherNan swap drop swap drop land
   -5 tofloat 27 tofloat eitherNan swap drop swap drop lnot land
 
-  if
-    "PASSED: " puts
-  else
-    "FAILED: " puts
-  end
+  check
   "Identification test\n" puts
    
+  //Test power functions
+  4 tofloat 2 fPowI toint 16 = 
+  5 tofloat 3 fPowI toint 125 = land
+  2 tofloat 5 fPowIEBS toint 32 = land
+
+  check
+  "Power Test\n" puts
 end
