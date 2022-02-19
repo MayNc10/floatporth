@@ -11,18 +11,22 @@ proc fPowI int int -- int in
   dup 0 = if
     drop drop 1
   else
-    while dup 1 > do
-      1 - 
+    swap
+    peek i in 
       swap
-      dup fMul
-      swap
+      while dup 1 > do
+        1 - 
+        swap
+        i fMul
+        swap
+      end
     end
     drop
   end
 end
 
 //from https://en.wikipedia.org/wiki/Exponentiation_by_squaring
-//This is fater when n > ~4
+//This is claimed to be faster when n > 4
 proc fPowIEBS int int -- int in //x, n
   dup 0 < if
     not 1 +
