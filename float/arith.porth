@@ -2,24 +2,25 @@ include "fcore.porth"
 include "std.porth"
 //TODO: Figure out rounding!
 //TODO: Make sure that we always return the correctly signed zero 
+//TODO: replace get_ swap drop with reduceTo_
 
 proc fAdd int int -- int in
-  let f1 f2 in
-    f1 f2 eitherNan if 
-      qNaN
-    else
-      f1 getSign swap drop
-      f2 getSign swap drop
+  eitherNan if 
+      drop drop qNaN
+  else
+    let f1 f2 in
+      f1 reduceToSign
+      f2 reduceToSign
       + 1 != if
-        f1 getExp swap drop
-        f2 getExp swap drop
+        f1 reduceToExp
+        f2 reduceToExp
         over over = if //e1 e2
           //we just have to add the mants
           drop 127 + 23 shl //set exp\
           f1 getMant swap drop //e1 m1 added implicit 1
           f2 getMant swap drop +
           16777216 + //add both implict ones
-          f1 getSign swap drop //saame signs 
+          f1 getSign swap drop //same signs 
           rot rot //normalize mant s e1 m
           while dup 16777215 > do
             1 shr
@@ -27,7 +28,8 @@ proc fAdd int int -- int in
             swap
           end
           //bitmask mantissa
-          //mantMask and //WEIRD BUG HERE: For some reason the lower bit of exp never gets set, so by not bitmasking we set it
+          //mantMask and 
+          //TODO: For some reason the lower bit of exp never gets set, so by not bitmasking we set it
           //no clue why this hapens, might have to check on it some time later
           rot 
           31 shl
@@ -36,7 +38,7 @@ proc fAdd int int -- int in
           //first =, we have to scale the exps
           over over - //e1 e2 diff
           swap drop //e1 diff
-          f1 getMant swap drop 1 23 shl + swap //e1 m1 diff 
+          f1 getMant swap drop 8388608 + swap //e1 m1 diff 
           f2 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
           swap 1 - //reduce diff
           while dup 0 > do
@@ -61,11 +63,10 @@ proc fAdd int int -- int in
           + + //add exp, mant, and sign
         else //e1 < e2
           swap //e2 e1
-          //first =, we have to scale the exps
-          over over - //e2 e1 diff
-          swap drop //e2 diff
-          f2 getMant swap drop 8388608 + swap //e1 m1 diff 
-          f1 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
+          //first we have to scale the exps
+          over swap - //e2 diff
+          f2 reduceToMant 8388608 + swap //e1 m1 diff 
+          f1 reduceToMant 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
           swap 1 - //reduce diff
           while dup 0 > do
             1 - swap //e1 m1 diff m2
@@ -74,16 +75,16 @@ proc fAdd int int -- int in
           drop
           //rest is very similar to the top 
           + //e m
-          swap 127 + 23 shl swap //e m
-          f1 getSign swap drop //sign
+          f1 reduceToSign //sign
           rot rot //normalize mant s e1 m
           while dup 16777215 > do
             1 shr
             swap 1 + 
             swap
-          end
+          end //e m
           //bitmask mantissa
           mantMask and
+          swap 127 + 23 shl swap //normalize mant
           rot 
           31 shl
           + + //add exp, mant, and sign
@@ -193,7 +194,7 @@ proc fDiff int int -- int in
 end
 
 proc fMul int int -- int in
-  over over eitherNan if
+  eitherNan if
     drop drop qNaN
   else
     over over over over  //f1 f2 f1 f2 f1 f2
