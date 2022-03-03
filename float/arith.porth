@@ -7,6 +7,8 @@ include "std.porth"
 proc fAdd int int -- int in
   eitherNan if 
       drop drop qNaN
+  else over 0 f= over 0 f= land if* //if both zero, we give errors, so this catches that case
+    drop drop 0 
   else
     let f1 f2 in
       f1 reduceToSign
