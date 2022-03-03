@@ -196,6 +196,8 @@ end
 proc fMul int int -- int in
   eitherNan if
     drop drop qNaN
+  else over 0 f= over 0 f= lor if* //either zero
+    drop drop 0 
   else
     over over over over  //f1 f2 f1 f2 f1 f2
     getMant swap drop swap getMant swap drop //f1 f2 f1 f2 m2 m1 (order doesnt matter for this
@@ -275,71 +277,75 @@ proc fFMA int int -- int in //TODO: not implemented yet!
 end
 proc fDiv int int -- int in
   over over 
-  getMant swap drop swap getMant swap drop swap 
-  let f1 f2 m1 m2 in
-    f1 getExp swap drop
-    f2 getExp swap drop  - 
-    m1 8388608 + 
-    23 shl 
-    m2 8388608 + /  //f1 f2 e res
-    dup mantMin < if
-      1 shl
-      swap 1 - swap
-    end
-    mantMask and
-    swap 127 + 23 shl + //r
-    f1 getSign swap drop f2 getSign swap drop //r s1 s2
-    + //r s
-    dup 1 > if
-      drop 0 //1+1 = 2 -> 0
-    end
-    31 shl + //result
+  over 0 f= if //if top zero
+    drop drop drop drop 0 
+  else
+    reduceToMant swap reduceToMant
+    let f1 f2 m2 m1 in
+      f1 reduceToExp
+      f2 reduceToExp  - 
+      m1 8388608 + 
+      23 shl 
+      m2 8388608 + /  //f1 f2 e res
+      dup mantMin < if
+        1 shl
+        swap 1 - swap
+      end
+      mantMask and
+      swap 127 + 23 shl + //r
+      f1 getSign swap drop f2 getSign swap drop //r s1 s2
+      + //r s
+      dup 1 > if
+        drop 0 //1+1 = 2 -> 0
+      end
+      31 shl + //result
 
-    //Time to round!
-    //There is problaby a better way to do this, but for now this works
-    //They way I'm doing this is:
-    //Calculate the numbers +1 and -1 from the mantissa, normalizing if neccessay
-    //multiply by the given divisor
-    //return the answer thats closest to the given divided
+      //Time to round!
+      //There is problaby a better way to do this, but for now this works
+      //They way I'm doing this is:
+      //Calculate the numbers +1 and -1 from the mantissa, normalizing if neccessay
+      //multiply by the given divisor
+      //return the answer thats closest to the given divided
 
-    dup dup //r r r 
-    getMant 8388609 + //1<<23 + 1
-    //normalize down 
-    dup 16777215 > if
-          1 shr //should only have to do this once 
-          swap getExp 1 - setExp swap //add one to the exponent
-    end 
-    setMant
-    swap 
-    //now do the same with -1
-    getMant 8388607 + //1<<23 - 1
-    //normalize up
-    dup mantMin < if
-      1 shl
-      swap getExp 1 + setExp swap
-    end
-    setMant
+      dup dup //r r r 
+      getMant 8388609 + //1<<23 + 1
+      //normalize down 
+      dup 16777215 > if
+            1 shr //should only have to do this once 
+            swap getExp 1 - setExp swap //add one to the exponent
+      end 
+      setMant
+      swap 
+      //now do the same with -1
+      getMant 8388607 + //1<<23 - 1
+      //normalize up
+      dup mantMin < if
+        1 shl
+        swap getExp 1 + setExp swap
+      end
+      setMant
 
-    let r1 r2 r3 in //0 -1 +1
-      f1 r1 f2 fMul fDiff 
-      f1 r2 f2 fMul fDiff
-      f1 r3 f2 fMul fDiff
-      let d1 d2 d3 in
-        d2 d3 f< if 
-          d1 d2 f< if //d1 is the best
-            r1
+      let r1 r2 r3 in //0 -1 +1
+        f1 r1 f2 fMul fDiff 
+        f1 r2 f2 fMul fDiff
+        f1 r3 f2 fMul fDiff
+        let d1 d2 d3 in
+          d2 d3 f< if 
+            d1 d2 f< if //d1 is the best
+              r1
+            else
+              r2
+            end
           else
-            r2
-          end
-        else
-          d1 d3 f< if //d1 is the best
-            r1
-          else
-            r3
+            d1 d3 f< if //d1 is the best
+              r1
+            else
+              r3
+            end
           end
         end
-      end
-    end     
+      end     
+    end
   end
 end
 proc fDivRecip int int -- int in
