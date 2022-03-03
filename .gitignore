@@ -19,9 +19,10 @@ float/*.sh
 bootstrap
 editor
 examples
-*.porth
 float/ensure
 *.py
 tests
 *.tar
 *.gz
+std
+porth.porth
