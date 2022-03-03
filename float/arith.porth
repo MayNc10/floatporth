@@ -3,6 +3,7 @@ include "std.porth"
 //TODO: Figure out rounding!
 //TODO: Make sure that we always return the correctly signed zero 
 //TODO: replace get_ swap drop with reduceTo_
+//TODO: check all the branches of fAdd for the mistake where we upshifted exp before normalizing
 
 proc fAdd int int -- int in
   eitherNan if 
