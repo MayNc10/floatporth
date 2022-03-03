@@ -2,6 +2,8 @@ include "fcore.porth"
 include "arith.porth"
 include "exp.porth"
 
+const e 1076754516 end
+
 proc fln int -- int in
     dup 0 f= if //check if 0
         drop -inf 
