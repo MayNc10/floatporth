@@ -2,6 +2,8 @@
 include "fcore.porth"
 include "arith.porth"
 include "trig.porth"
+include "exp.porth"
+include "log.porth"
 
 proc check bool in
   if 
@@ -32,6 +34,7 @@ proc main in
   1 tofloat 2 tofloat fAdd toint 3 = 
   1 tofloat 1 tofloat fSub toint 0 = land
   1 tofloat -1 tofloat fAdd toint 0 = land
+  0 0 fAdd 0 = land
   //1061158912 1056964608 fAdd 1067450368 = land //0.75 + 0.5 = 1.25
   1059061760 1052770304 fAdd toint 1 = land //0.625 + 0.375 = 1
 
@@ -105,4 +108,13 @@ proc main in
 
   check
   "Power Test\n" puts
+
+  e fln toint 1 =
+  1 tofloat fln 0 = land
+  2 tofloat fln 1060205080 = land
+
+  check
+  "Logarithm test\n" puts
+
+  
 end
