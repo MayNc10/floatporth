@@ -68,7 +68,7 @@ proc flog10 int -- int in
         end
         1063148505 fMul //same logic as flog2, multiply by 2/ln(10)
         swap //log10(m) e
-        tofloat 1075010958 fMul //log10(m) log10(2^e)
+        tofloat 1050288283 fMul //log10(m) log10(2^e)
         fAdd
     end
 end
