@@ -49,3 +49,8 @@ proc flog2 int -- int in
         fAdd
     end
 end
+
+//Because flog2 uses less multiplications, I'm asusming it's more accurate and faster, and so I'm using it here. We should confirm this though
+proc flog int int -- int in //Base x
+    flog2 swap flog2 fDiv
+end
