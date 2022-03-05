@@ -91,44 +91,32 @@ end
 
 proc toint int -- int in
   dup 0 != if //same as tofloat
-   getSign swap getExp   //s f e
-   1 22 //keep track of number and count
-   rot //s f n c e
-   while dup 0 > do
-    let f n c e in
-     0 c 0 > if drop f c shr 1 and end //get the last bit of f
-     f swap //f b
-     n 1 shl //f b n
-     + //f n
-     c 1 -
-     e 1 -
-    end
-   end
-  drop //s f n c
-  rot swap //s n f c
-  dup 0 > if //make sure that c is positive
-    over over shr 1 and cast(bool) if //if the next bit is 0,then we don't have to round
-      1 - dup 0 > if //try to get second bit
-        //we have 2 bits
-        shr 1 and cast(bool) if //bits = 11
-          //simply increase
-          1 + 
-        else
-          //round to even
-          dup 1 and cast(bool) if //is odd
-            1 + 
-          end
-        end
-      else
-        //only one bit, round to even. 
-        drop drop 
-        dup 1 and cast(bool) if //is odd
-          1 + 
-        end
+    getSign swap getExp swap reduceToMant 8388608 + swap  //s m e
+    0
+    swap //s f n e
+    while dup 0 >= do
+      let m n e in
+      m 8388608 and 23 shr //b
+      n 1 shl //b n
+      + //n
+      m 1 shl 16777215 and swap //f n 
+      e 1 -
       end
-    else drop drop end
-  else drop drop end 
-  swap 0 > if neg end 
+    end
+    drop //s f n 
+    swap //s n f 
+    16777215 and 
+    dup 8388608 >= if //fraction >= .5
+      8388608 = if //exactly half, round to even
+        dup 1 and cast(bool) if 
+          1 + 
+        end 
+      else 
+        //larger than 0.5, just add
+        1 + 
+      end 
+    else drop end 
+    swap 0 > if neg end 
   end
 end
   
@@ -276,8 +264,3 @@ proc fNextTo int -- int int int in //NOTE: this function returns the same number
     dup 1 + dup 1 - 
   end
 end
-
-    
-
-    
-
