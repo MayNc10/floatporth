@@ -104,8 +104,31 @@ proc toint int -- int in
      e 1 -
     end
    end
-   drop drop swap drop //s n
-   swap 0 > if not 1 + end //TODO: again, neg
+  drop //s f n c
+  rot swap //s n f c
+  dup 0 > if //make sure that c is positive
+    over over shr 1 and cast(bool) if //if the next bit is 0,then we don't have to round
+      1 - dup 0 > if //try to get second bit
+        //we have 2 bits
+        shr 1 and cast(bool) if //bits = 11
+          //simply increase
+          1 + 
+        else
+          //round to even
+          dup 1 and cast(bool) if //is odd
+            1 + 
+          end
+        end
+      else
+        //only one bit, round to even. 
+        drop drop 
+        dup 1 and cast(bool) if //is odd
+          1 + 
+        end
+      end
+    else drop drop end
+  else drop drop end 
+  swap 0 > if neg end 
   end
 end
   
