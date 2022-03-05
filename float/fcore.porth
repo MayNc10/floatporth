@@ -1,4 +1,5 @@
 include "core.porth" 
+include "std.porth" 
 const NaN 2139095041 end
 const qNaN 2139095041 end
 const sNaN 4290772993 end
@@ -56,7 +57,7 @@ proc tofloat int -- int in //doesnt handle negative ints
      dup 0 != if //if zero, just leave zero on stack
        false swap
        dup 0 < if
-         neg //TODO: when we update, this should be neg
+         neg 
          swap drop true swap //reset bool
        end
        0 0 //exp and mantissa
@@ -92,30 +93,33 @@ end
 proc toint int -- int in
   dup 0 != if //same as tofloat
     getSign swap getExp swap reduceToMant 8388608 + swap  //s m e
-    0
-    swap //s f n e
-    while dup 0 >= do
-      let m n e in
-      m 8388608 and 23 shr //b
-      n 1 shl //b n
-      + //n
-      m 1 shl 16777215 and swap //f n 
-      e 1 -
+    23 swap - 
+    over over //s m e m e 
+    dup 0 > if //shift down
+      shr
+      swap rot swap //s n m e  
+      dup 1 = if //shifted one, round to even
+        and cast(bool) if //tie to even
+          dup 1 and cast(bool) if 
+            1 + 
+          end 
+        end
+      else //shifted more
+        over over 1 swap 1 - shl //s n m e m bit
+        and 0 > if //>=.5?
+          1 swap 2 - shl //s n m bitmask
+          and  
+          0 > if //>.5?
+            1 + 
+          else dup 1 and cast(bool) if* //tie to even
+            1 +
+          end 
+        else drop drop end  
       end
+    else
+      neg shl
+      drop drop
     end
-    drop //s f n 
-    swap //s n f 
-    16777215 and 
-    dup 8388608 >= if //fraction >= .5
-      8388608 = if //exactly half, round to even
-        dup 1 and cast(bool) if 
-          1 + 
-        end 
-      else 
-        //larger than 0.5, just add
-        1 + 
-      end 
-    else drop end 
     swap 0 > if neg end 
   end
 end
