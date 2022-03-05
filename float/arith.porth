@@ -19,21 +19,20 @@ proc fAdd int int -- int in
         f2 reduceToExp
         over over = if //e1 e2
           //we just have to add the mants
-          drop 127 + 23 shl //set exp\
-          f1 getMant swap drop //e1 m1 added implicit 1
-          f2 getMant swap drop +
+          drop 
+          f1 reduceToSign //same signs
+          swap 1 + //We can auto add this because we know we''l have to shift down. saves us 2 swaps. s e1
+          f1 reduceToMant //s e1 m1 
+          f2 reduceToMant + //s e1 m
           16777216 + //add both implict ones
-          f1 getSign swap drop //same signs 
-          rot rot //normalize mant s e1 m
+          1 shr //auto-shift
           while dup 16777215 > do
-            1 shr
+            1 shr 
             swap 1 + 
             swap
           end
-          //bitmask mantissa
-          //mantMask and 
-          //TODO: For some reason the lower bit of exp never gets set, so by not bitmasking we set it
-          //no clue why this hapens, might have to check on it some time later
+          mantMask and 
+          swap 127 + 23 shl //set exp
           rot 
           31 shl
           + + //add exp, mant, and sign
@@ -51,7 +50,6 @@ proc fAdd int int -- int in
           drop
           //rest is very similar to the top 
           + //e m
-          swap 127 + 23 shl swap //e m
           f1 getSign swap drop //sign
           rot rot //normalize mant s e1 m
           while dup 16777215 > do
@@ -61,6 +59,7 @@ proc fAdd int int -- int in
           end
           //bitmask mantissa
           mantMask and
+          swap 127 + 23 shl
           rot 
           31 shl
           + + //add exp, mant, and sign
@@ -87,7 +86,7 @@ proc fAdd int int -- int in
           end //e m
           //bitmask mantissa
           mantMask and
-          swap 127 + 23 shl swap //normalize mant
+          swap 127 + 23 shl //normalize mant
           rot 
           31 shl
           + + //add exp, mant, and sign
