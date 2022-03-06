@@ -1,6 +1,7 @@
 include "fcore.porth"
 include "arith.porth"
 
+//TODO: once we make fFMA, use it! it'll help increase our accuracy, expecially on fExp 
 proc fPowI int int -- int in
   dup 0 < if
     not 1 +
@@ -55,4 +56,53 @@ proc fPowIEBS int int -- int in //x, n
     drop
     fMul
   end
+end
+
+proc fExp int -- int in //e^x 
+  //first step is to set x to be between -0.25 and 0.25
+  //this just requires use to set the exp to -3
+  getExp swap -3 setExp dup dup fMul //e f f^2
+  let exp f f2 in 
+
+    f2 1001569291 fMul // 3/550    
+    1065353216 fAdd //1
+    1023625269 fMul // 5/156
+    f2 fMul
+    1065353216 fAdd //1
+
+    f2 991011508 fMul // f2/450
+    1065353216 fAdd //1
+    1011801698 fMul // 5/396
+    f2 fMul
+    1065353216 fAdd //1
+    1038896837 fMul // 3/26
+    f2 fMul
+    1065353216 fAdd //1
+
+    fDiv 
+
+    f -4 setExp // f/2
+    fMul
+
+    let a in 
+      1065353216 a fAdd //1
+      1065353216 a fSub //1
+
+      fDiv 
+    end
+
+    //e^mant
+    //Now to get exp
+
+    1 exp 3 + shl //2^exp, add three to correct for setexp -3 
+    
+    //Use EBS if greater than 4. I think the speed of EBS offsets the cost of doing this check. 
+    //TODO: confirm ^
+    dup 4 > if 
+      fPowIEBS
+    else 
+      fPowI
+    end
+  end
+
 end
