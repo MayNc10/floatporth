@@ -3,8 +3,8 @@ include "fcore.porth"
 include "arith.porth"
 
 proc main in 
-    //source of random 16-bit numbers to seed our additions
-    memory randbuf 4 end
+    //source of random 32-bit numbers to seed our additions
+    memory randbuf 8 end
 
     //get fd of /dev/urandom
     0 O_RDONLY "/dev/urandom"c AT_FDCWD openat
@@ -13,18 +13,18 @@ proc main in
         "Unable to open /dev/urandom\n" puts 
     else 
         //pipe values from /dev/urandom into our buffers
-        4 randbuf rot //4 bytes, ptr, fd
+        8 randbuf rot //8 bytes, ptr, fd
         read 
         0 < if 
             "Unable to read from /dev/urandom\n" puts 
         else 
-            //load 2 random 16-bit numbers from the buffer
-            randbuf @16 dup tofloat 
-            randbuf 2 ptr+ @16 dup tofloat 
+            //load 2 random 32-bit numbers from the buffer
+            randbuf @32 dup tofloat 
+            randbuf 4 ptr+ @32 dup tofloat 
 
             let iarg1 arg1 iarg2 arg2 in 
-                "First random number: " puts iarg1 putu ", value stored in float: " puts arg1 toint print 
-                "Second random number: " puts iarg2 putu ", value stored in float: " puts arg2 toint print 
+                "First random number: " puts iarg1 putu ", value stored in float: " puts iarg1 print 
+                "Second random number: " puts iarg2 putu ", value stored in float: " puts iarg2 print 
 
                 timeit/from-here
                 1000000
@@ -77,7 +77,7 @@ proc main in
                     iarg1 tofloat drop 
                     1 -  
                 end
-                "1 million floating-point converions" false timeit/to-here 
+                "1 million floating-point convertions" false timeit/to-here 
                 drop
 
                 timeit/from-here
@@ -86,7 +86,7 @@ proc main in
                     arg1 toint drop 
                     1 -  
                 end
-                "1 million integer converions" false timeit/to-here 
+                "1 million integer convertions" false timeit/to-here 
                 drop 
 
             end
