@@ -3,8 +3,8 @@ include "fcore.porth"
 include "arith.porth"
 
 proc main in 
-    //source of random 8-bit numbers to seed our additions
-    memory randbuf 2 end
+    //source of random 16-bit numbers to seed our additions
+    memory randbuf 4 end
 
     //get fd of /dev/urandom
     0 O_RDONLY "/dev/urandom"c AT_FDCWD openat
@@ -13,14 +13,14 @@ proc main in
         "Unable to open /dev/urandom\n" puts 
     else 
         //pipe values from /dev/urandom into our buffers
-        2 randbuf rot //2 bytes, ptr, fd
+        4 randbuf rot //4 bytes, ptr, fd
         read 
         0 < if 
             "Unable to read from /dev/urandom\n" puts 
         else 
-            //load 2 random 8-bit numbers from the buffer
-            randbuf @8 dup tofloat 
-            randbuf 1 ptr+ @8 dup tofloat 
+            //load 2 random 16-bit numbers from the buffer
+            randbuf @16 dup tofloat 
+            randbuf 2 ptr+ @16 dup tofloat 
 
             let iarg1 arg1 iarg2 arg2 in 
                 "First random number: " puts iarg1 putu ", value stored in float: " puts arg1 toint print 
