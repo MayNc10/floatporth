@@ -15,6 +15,7 @@ proc fAdd int int -- int in
       f1 reduceToSign
       f2 reduceToSign
       + 1 != if
+        "positive\n" puts
         f1 reduceToExp
         f2 reduceToExp
         over over = if //e1 e2
@@ -26,11 +27,14 @@ proc fAdd int int -- int in
           f2 reduceToMant + //s e1 m
           16777216 + //add both implict ones
           1 shr //auto-shift
+          "start shifting\n" puts
           while dup 16777215 > do
+            "shifting\n" puts 
             1 shr 
             swap 1 + 
             swap
           end
+          "end shifting\n" puts 
           mantMask and 
           swap 127 + 23 shl //set exp
           rot 
@@ -52,11 +56,14 @@ proc fAdd int int -- int in
           + //e m
           f1 getSign swap drop //sign
           rot rot //normalize mant s e1 m
+         "start shifting\n" puts
           while dup 16777215 > do
-            1 shr
+            "shifting\n" puts 
+            1 shr 
             swap 1 + 
             swap
           end
+          "end shifting\n" puts 
           //bitmask mantissa
           mantMask and
           swap 127 + 23 shl
@@ -79,11 +86,14 @@ proc fAdd int int -- int in
           + //e m
           f1 reduceToSign //sign
           rot rot //normalize mant s e1 m
+          "start shifting\n" puts
           while dup 16777215 > do
-            1 shr
+            "shifting\n" puts 
+            1 shr 
             swap 1 + 
             swap
-          end //e m
+          end
+          "end shifting\n" puts //e m
           //bitmask mantissa
           mantMask and
           swap 127 + 23 shl //normalize mant
@@ -92,6 +102,7 @@ proc fAdd int int -- int in
           + + //add exp, mant, and sign
         end
       else //weird negative stuff
+        "negative\n" puts
         f1 getSign swap drop 0 = if
           //f2 is negative
           f1 getExp swap drop
@@ -110,11 +121,14 @@ proc fAdd int int -- int in
             dup 0 = if
               drop drop drop 0 //zero
             else
+              "start shifting\n" puts
               while dup mantMin < do
+                "shifting\n" puts 
                 1 shl
                 swap 1 - 
                 swap
               end
+              "end shifting\n" puts
               swap 127 + 23 shl swap
               //bitmask mantissa
               mantMask and 
@@ -138,11 +152,14 @@ proc fAdd int int -- int in
             dup 0 = if
               drop drop drop 0 //zero stuff
             else
+              "start shifting\n" puts
               while dup mantMin < do
+                "shifting\n" puts 
                 1 shl
                 swap 1 - 
                 swap
               end
+              "end shifting\n" puts
               swap 127 + 23 shl swap
               //bitmask mantissa
               mantMask and 
@@ -262,7 +279,7 @@ proc fFMA int int int -- int in //TODO: not implemented yet!
             rot 1 + //res sft e
             swap rot //e sft res
         end
-        drop 
+        swap 
         dup f3 reduceToMant swap shl //shift f3 by the same ammount
         //now we know how much we're upshifted by
         //now to add stuff
