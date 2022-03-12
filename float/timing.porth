@@ -23,8 +23,8 @@ proc main in
             randbuf 1 ptr+ @8 dup tofloat 
 
             let iarg1 arg1 iarg2 arg2 in 
-                "First random number: " puts iarg1 print
-                "Second random number: " puts iarg2 print
+                "First random number: " puts iarg1 putu ", value stored in float: " puts arg1 toint print 
+                "Second random number: " puts iarg2 putu ", value stored in float: " puts arg2 toint print 
 
                 timeit/from-here
                 1000000
