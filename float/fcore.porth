@@ -93,7 +93,7 @@ end
 
 proc toint int -- int in
   dup 0 != if //same as tofloat
-    getSign swap getExp swap reduceToMant 8388608 + swap  //s m e
+    getSign swap getMant 8388608 + swap reduceToExp //s m e
     23 swap - 
     over over //s m e m e 
     dup 0 > if //shift down
@@ -118,8 +118,8 @@ proc toint int -- int in
         else drop drop end  
       end
     else
-      neg shl
       drop drop
+      neg shl
     end
     swap 0 > if neg end 
   end
