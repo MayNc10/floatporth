@@ -1,0 +1,95 @@
+include "std.porth"
+include "fcore.porth"
+include "arith.porth"
+
+proc main in 
+    //source of random 8-bit numbers to seed our additions
+    memory randbuf 2 end
+
+    //get fd of /dev/urandom
+    0 O_RDONLY "/dev/urandom"c AT_FDCWD openat
+    dup 0 < if 
+        drop
+        "Unable to open /dev/urandom\n" puts 
+    else 
+        //pipe values from /dev/urandom into our buffers
+        2 randbuf rot //2 bytes, ptr, fd
+        read 
+        0 < if 
+            "Unable to read from /dev/urandom\n" puts 
+        else 
+            //load 2 random 8-bit numbers from the buffer
+            randbuf @8 dup tofloat 
+            randbuf 1 ptr+ @8 dup tofloat 
+
+            let iarg1 arg1 iarg2 arg2 in 
+                "First random number: " puts iarg1 print
+                "Second random number: " puts iarg2 print
+
+                timeit/from-here
+                1000000
+                while dup 0 > do 
+                    arg1 arg2 fAdd drop
+                    1 -  
+                end
+                "1 million addition operations" false timeit/to-here 
+                drop 
+                
+                timeit/from-here
+                1000000
+                while dup 0 > do 
+                    arg1 arg2 fSub drop
+                    1 -  
+                end
+                "1 million subtraction operations" false timeit/to-here 
+                drop 
+                
+                timeit/from-here
+                1000000
+                while dup 0 > do 
+                    arg1 arg2 fMul drop
+                    1 -  
+                end
+                "1 million multiplication operations" false timeit/to-here 
+                drop 
+            
+                timeit/from-here
+                1000000
+                while dup 0 > do 
+                    arg1 arg2 fDiv drop
+                    1 -  
+                end
+                "1 million division operations" false timeit/to-here 
+                drop 
+                
+                timeit/from-here
+                1000000
+                while dup 0 > do 
+                    arg1 arg2 fDivRecip drop
+                    1 -  
+                end
+                "1 million reciprocal division operations" false timeit/to-here 
+                drop 
+
+                timeit/from-here
+                1000000
+                while dup 0 > do 
+                    iarg1 tofloat drop 
+                    1 -  
+                end
+                "1 million floating-point converions" false timeit/to-here 
+                drop
+
+                timeit/from-here
+                1000000
+                while dup 0 > do 
+                    arg1 toint drop 
+                    1 -  
+                end
+                "1 million integer converions" false timeit/to-here 
+                drop 
+
+            end
+        end
+    end 
+end 
