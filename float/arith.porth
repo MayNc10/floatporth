@@ -41,13 +41,7 @@ proc fAdd int int -- int in
           over over - //e1 e2 diff
           swap drop //e1 diff
           f1 getMant swap drop 8388608 + swap //e1 m1 diff 
-          f2 getMant swap drop 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
-          swap 1 - //reduce diff
-          while dup 0 > do
-            1 - swap //e1 m1 diff m2
-            1 shr swap //e1 m1 m2 diff
-          end  
-          drop
+          f2 getMant swap drop 8388608 + swap shr //shift m2 down 
           //rest is very similar to the top 
           + //e m
           f1 getSign swap drop //sign
@@ -68,13 +62,7 @@ proc fAdd int int -- int in
           //first we have to scale the exps
           over swap - //e2 diff
           f2 reduceToMant 8388608 + swap //e1 m1 diff 
-          f1 reduceToMant 1 shr 4194304 + //shift bmant down 1 and add back the implict 1 (1<<22)
-          swap 1 - //reduce diff
-          while dup 0 > do
-            1 - swap //e1 m1 diff m2
-            1 shr swap //e1 m1 m2 diff
-          end  
-          drop
+          f1 reduceToMant 8388608 + swap shr //shift m2 down
           //rest is very similar to the top 
           + //e m
           f1 reduceToSign //sign
