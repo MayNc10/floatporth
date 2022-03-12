@@ -201,51 +201,53 @@ proc fMul int int -- int in
   else over 0 f= over 0 f= lor if* //either zero
     drop drop 0 
   else
-    over over over over  //f1 f2 f1 f2 f1 f2
-    getMant swap drop swap getMant swap drop //f1 f2 f1 f2 m2 m1 (order doesnt matter for this
-    let m1 m2 in
-      over 0 = over 0 = lor if //check if any = 0
-        drop drop drop drop 0
-      else
-        getExp swap drop //f1 f2 f1 e2
-        swap getExp swap drop + //f1 f2 e 
-        m2 8388608 +
-        m1 8388608 + * //f1 f2 e res
-        //If this were 32-bit, we would have to downshift some
-        //But all integers all 64-bit in porth
-        //if we implement 64-bit floats, we will have to do some downshifting
-        //but with 32-bit floats and 64-bit ints, we're all good!
-        23 shr //TODO Test
-        dup 16777215 > if
-          1 shr //should only have to do this once 
-          swap 1 + swap //add one to the exponent
+    let f1 f2 in 
+    f1 reduceToMant f2 reduceToMant 
+      let m1 m2 in
+        f1 0 = f2 0 = lor if //check if any = 0
+          0
+        else
+          f1 reduceToExp //e1
+          f2 reduceToExp + //e 
+          m2 8388608 +
+          m1 8388608 + * //e res
+          //If this were 32-bit, we would have to downshift some
+          //But all integers all 64-bit in porth
+          //if we implement 64-bit floats, we will have to do some downshifting
+          //but with 32-bit floats and 64-bit ints, we're all good!
+
+          23 shr //TODO Test
+          dup 16777215 > if
+            1 shr //should only have to do this once 
+            swap 1 + swap //add one to the exponent
+          end
+          mantMask and //get rid of implicit 1  
+          swap 127 + 23 shl + //r
+          f1 reduceToSign f2 reduceToSign //r s1 s2
+          + //r s
+          dup 1 > if
+            drop 0 //1+1 = 2 -> 0
+          end
+          31 shl + //result
         end
-        mantMask and //get rid of implicit 1  
-        swap 127 + 23 shl + //f1 f2 r
-        rot rot //r f1 f2
-        getSign swap drop swap getSign swap drop //r s1 s2
-        + //r s
-        dup 1 > if
-          drop 0 //1+1 = 2 -> 0
-        end
-        31 shl + //result
       end
     end
   end
 end
 
-proc fFMA int int -- int in //TODO: not implemented yet!
-    //starts out with a normal multiply
-    over over over over  //f1 f2 f1 f2 f1 f2
-    getMant swap drop swap getMant swap drop //f1 f2 f1 f2 m1 m2 
+proc fFMA int int int -- int in //TODO: not implemented yet!
+  //starts out with a normal multiply
+  let f1 f2 f3 in 
+    f1 reduceToMant 
+    f2 reduceToMant
     let m1 m2 in
-      over 0 = over 0 = lor if //check if any = 0
-        drop drop drop drop 0
+      f1 0 = f2 0 = lor if //check if any = 0
+        f3 
       else
-        getExp swap drop //f1 f2 f1 e2
-        swap getExp swap drop + //f1 f2 e 
+        f1 reduceToExp //e1
+        f2 reduceToExp + //e 
         m2 8388608 +
-        m1 8388608 + * //f1 f2 e res
+        m1 8388608 + * //e res
         //If this were 32-bit, we would have to downshift some
         //But all integers all 64-bit in porth
         //if we implement 64-bit floats, we will have to do some downshifting
@@ -260,15 +262,27 @@ proc fFMA int int -- int in //TODO: not implemented yet!
             rot 1 + //res sft e
             swap rot //e sft res
         end
-  
+        drop 
+        dup f3 reduceToMant swap shl //shift f3 by the same ammount
         //now we know how much we're upshifted by
         //now to add stuff
-        drop //added to allow it to pass typechecking
-
+        let exp res sft add in 
+          exp f3 reduceToExp = if // are exps equal
+            res add + 
+            //round 
+            dup sft 1 - shr 1 and //get the 0.5 bit
+            cast(bool) if //>= 0.5?
+              dup 
+              45 shr - //make bitmask of < 0.5 bits
+              
+            else 
+              sft shr 
+            end  
+          end
+        end
         mantMask and //get rid of implicit 1  
-        swap 127 + 23 shl + //f1 f2 r
-        rot rot //r f1 f2
-        getSign swap drop swap getSign swap drop //r s1 s2
+        swap 127 + 23 shl + //r
+        f1 reduceToSign f2 reduceToSign //r s1 s2 
         + //r s
         dup 1 > if
           drop 0 //1+1 = 2 -> 0
@@ -276,6 +290,7 @@ proc fFMA int int -- int in //TODO: not implemented yet!
         31 shl + //result
       end
     end
+  end
 end
 proc fDiv int int -- int in
   over over 
