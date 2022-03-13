@@ -4,17 +4,17 @@ include "arith.porth"
 include "trig.porth"
 include "exp.porth"
 include "log.porth"
+include "std.porth"
 
 proc check bool in
   if 
-    "PASSED: " puts
+    "0[32mPASSED:0[0m "c dup 27 swap !8 dup 12 ptr+ 27 swap !8 cstr-to-str puts
   else
-    "FAILED: " puts
+    "0[31mFAILED:0[0m "c dup 27 swap !8 dup 12 ptr+ 27 swap !8 cstr-to-str puts
   end
 end
 
 proc main in 
-  //check non-essential fcore functions (essential functions are tofloat/toint and the getters/setters, and are assumed to work
   1 tofloat fNeg -1 tofloat = 
   1 tofloat dup fAbs = land 
   -zero fAbs +zero = land 
