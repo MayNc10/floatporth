@@ -84,10 +84,9 @@ proc tofloat int -- int in //doesnt handle negative ints
        127 +
        23 shl
        + //final float w/o sign
-       swap 0 swap if //negative
-         drop 1
+       swap if //negative
+         signBit + 
        end
-       31 shl + //final float
      end
 end
 
