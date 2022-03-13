@@ -3,7 +3,29 @@ include "fcore.porth"
 include "arith.porth"
 
 proc main in 
-    //source of random 32-bit numbers to seed our additions
+    memory bitwidth 1 end 
+    32 bitwidth !8 
+
+    //get bit width
+    memory args sizeof(ptr) end 
+    argv args !ptr 
+    args sizeof(ptr) inc64-by
+
+    args @@ptr NULL ptr= if 
+        //do nothing
+    else args @@ptr "8"c cstreq if*
+        1 bitwidth !8
+    else args @@ptr "16"c cstreq if* 
+        2 bitwidth !8
+    else args @@ptr "32"c cstreq if*
+        4 bitwidth !8
+    else 
+        "Error: bitwidth provided is not 8, 16, or 32!\n" puts
+        "Provided bitwidth was: " puts args @@ptr cstr-to-str puts "\n" puts
+        1 exit 
+    end 
+
+    //source of random numbers to seed our additions
     memory randbuf 8 end
 
     //get fd of /dev/urandom
@@ -12,84 +34,94 @@ proc main in
         drop
         "Unable to open /dev/urandom\n" puts 
     else 
+        dup 
         //pipe values from /dev/urandom into our buffers
-        8 randbuf rot //8 bytes, ptr, fd
+        bitwidth @8 randbuf rot //bits, ptr, fd
         read 
         0 < if 
             "Unable to read from /dev/urandom\n" puts 
+            drop 
+            1 exit 
         else 
-            //load 2 random 32-bit numbers from the buffer
-            randbuf @32 dup tofloat 
-            randbuf 4 ptr+ @32 dup tofloat 
+            bitwidth @8 randbuf 4 ptr+ rot //bits, ptr, fd
+            read 
+            0 < if 
+                "Unable to read from /dev/urandom\n" puts 
+                1 exit
+            else 
+                //load 2 random numbers from the buffer
+                randbuf @32 dup tofloat 
+                randbuf 4 ptr+ @32 dup tofloat 
 
-            let iarg1 arg1 iarg2 arg2 in 
-                "First random number: " puts iarg1 putu ", value stored in float: " puts iarg1 print 
-                "Second random number: " puts iarg2 putu ", value stored in float: " puts iarg2 print 
+                let iarg1 arg1 iarg2 arg2 in 
+                    "First random number: " puts iarg1 putu ", value stored in float: " puts iarg1 print 
+                    "Second random number: " puts iarg2 putu ", value stored in float: " puts iarg2 print 
 
-                timeit/from-here
-                1000000
-                while dup 0 > do 
-                    arg1 arg2 fAdd drop
-                    1 -  
-                end
-                "1 million addition operations" false timeit/to-here 
-                drop 
+                    timeit/from-here
+                    1000000
+                    while dup 0 > do 
+                        arg1 arg2 fAdd drop
+                        1 -  
+                    end
+                    "1 million addition operations" false timeit/to-here 
+                    drop 
+                    
+                    timeit/from-here
+                    1000000
+                    while dup 0 > do 
+                        arg1 arg2 fSub drop
+                        1 -  
+                    end
+                    "1 million subtraction operations" false timeit/to-here 
+                    drop 
+                    
+                    timeit/from-here
+                    1000000
+                    while dup 0 > do 
+                        arg1 arg2 fMul drop
+                        1 -  
+                    end
+                    "1 million multiplication operations" false timeit/to-here 
+                    drop 
                 
-                timeit/from-here
-                1000000
-                while dup 0 > do 
-                    arg1 arg2 fSub drop
-                    1 -  
-                end
-                "1 million subtraction operations" false timeit/to-here 
-                drop 
-                
-                timeit/from-here
-                1000000
-                while dup 0 > do 
-                    arg1 arg2 fMul drop
-                    1 -  
-                end
-                "1 million multiplication operations" false timeit/to-here 
-                drop 
-            
-                timeit/from-here
-                1000000
-                while dup 0 > do 
-                    arg1 arg2 fDiv drop
-                    1 -  
-                end
-                "1 million division operations" false timeit/to-here 
-                drop 
-                
-                timeit/from-here
-                1000000
-                while dup 0 > do 
-                    arg1 arg2 fDivRecip drop
-                    1 -  
-                end
-                "1 million reciprocal division operations" false timeit/to-here 
-                drop 
+                    timeit/from-here
+                    1000000
+                    while dup 0 > do 
+                        arg1 arg2 fDiv drop
+                        1 -  
+                    end
+                    "1 million division operations" false timeit/to-here 
+                    drop 
+                    
+                    timeit/from-here
+                    1000000
+                    while dup 0 > do 
+                        arg1 arg2 fDivRecip drop
+                        1 -  
+                    end
+                    "1 million reciprocal division operations" false timeit/to-here 
+                    drop 
 
-                timeit/from-here
-                1000000
-                while dup 0 > do 
-                    iarg1 tofloat drop 
-                    1 -  
-                end
-                "1 million floating-point convertions" false timeit/to-here 
-                drop
+                    timeit/from-here
+                    1000000
+                    while dup 0 > do 
+                        iarg1 tofloat drop 
+                        1 -  
+                    end
+                    "1 million floating-point convertions" false timeit/to-here 
+                    drop
 
-                timeit/from-here
-                1000000
-                while dup 0 > do 
-                    arg1 toint drop 
-                    1 -  
-                end
-                "1 million integer convertions" false timeit/to-here 
-                drop 
+                    timeit/from-here
+                    1000000
+                    while dup 0 > do 
+                        arg1 toint drop 
+                        1 -  
+                    end
+                    "1 million integer convertions" false timeit/to-here 
+                    drop 
 
-            end
+                end
+            end 
         end
     end 
 end 
