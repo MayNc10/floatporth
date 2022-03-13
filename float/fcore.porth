@@ -54,40 +54,83 @@ proc setMant int int -- int in
   swap 22 shr 22 shl or
 end
 
-proc tofloat int -- int in //doesnt handle negative ints
-     dup 0 != if //if zero, just leave zero on stack
-       false swap
-       dup 0 < if
-         neg 
-         swap drop true swap //reset bool
-       end
-       0 0 //exp and mantissa
-       rot
-       //stack looks like exp mant n
-       while dup 1 > do
-         dup 1 and //bit = n & 1
-         swap
-         1 shr //n >> 1
-         rot // bit n mant
-         1 shr //mant >> 1
-         rot //n mant bit
-         22 shl //exp n mant bit
-         + //exp n mant
-         rot //n mant exp
-         1 + //n mant exp
-         swap rot //exp mant n
-       end
-       //maybe round
-       drop //exp mant
-       mantMask and //mant bitmask// 
-       swap //mant exp
-       127 +
-       23 shl
-       + //final float w/o sign
-       swap if //negative
-         signBit + 
-       end
-     end
+proc tofloat int -- int in 
+    dup 0 != if //if zero, just leave zero on stack
+      false swap
+      dup 0 < if
+        neg 
+        swap drop true swap //reset bool
+      end
+      //n 
+      //get msb position
+      //taken from https://www.baeldung.com/cs/most-significant-bit
+      //eventually this should be an asm instruction in the compiler but I'll only modify the compiler if Tsoding's done with it for good
+      //for now, we'll use this
+      dup 
+      let n in 
+        -1 0 64 //64-bit ints
+        while over over <= do //msb l r 
+          over over + 1 shr //equivalent to 2 / 
+          let mid in 
+            1 mid shl n > if 
+              rot drop mid 1 - 
+              rot rot drop mid 1 - 
+            else
+              swap drop mid 1 + swap 
+            end
+          end
+        end
+      end 
+      drop drop 
+      //msb = exp 
+      //n <- 23-msb 
+      //if downshift, round here
+      swap //msb|e n 
+      over 23 swap - //e n 23-msb
+      dup 0 >= if //shift is still up 
+        shl 
+      else  
+        neg 
+        //round down
+        let n sft in  
+          1 sft shl dup //make bitmask
+          n and 
+          0 > if //>= 0.5
+            1 - //change last bitmask
+            n and 
+            0 > if //> 0.5
+              //strict inc
+              n sft shr 1 +
+              //check for overflow
+              dup 16777215 > if //overflow
+                1 shr 
+                swap 1 + swap //edit exp
+              end 
+            else 
+              n sft shr 
+              dup 1 and cast(bool) if //round if odd
+                1 + 
+                //check for overflow
+                dup 16777215 > if //overflow
+                  1 shr 
+                  swap 1 + swap //edit exp
+                end 
+              end 
+            end
+          else 
+            drop n sft shr 
+          end 
+        end 
+      end 
+      mantMask and //mant bitmask// 
+      swap //mant exp
+      127 +
+      23 shl
+      + //final float w/o sign
+      swap if //negative
+        signBit + 
+      end
+    end
 end
 
 proc toint int -- int in
